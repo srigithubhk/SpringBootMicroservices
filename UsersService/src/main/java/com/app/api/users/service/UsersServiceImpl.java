@@ -7,17 +7,26 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.app.api.users.model.CreateUserRequestModel;
 import com.app.api.users.model.CreateUserResponseModel;
+import com.app.api.users.model.GalleryEntity;
 import com.app.api.users.repository.UserRepository;
 
 @Service
 public class UsersServiceImpl implements UsersService {
 	
-	//RestTemplate restTemplate;
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@Autowired
 	Environment environment;
 	
 	Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -97,6 +106,7 @@ public class UsersServiceImpl implements UsersService {
 		
 	}
 	
+	@Override
 	public Boolean checkUserEmail(CreateUserRequestModel userReq, Integer userId) {
 		ArrayList<CreateUserResponseModel> usersDataPool = UserRepository.userDataRepo();
 		for(CreateUserResponseModel user : usersDataPool) {
@@ -105,6 +115,16 @@ public class UsersServiceImpl implements UsersService {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public ResponseEntity<List<GalleryEntity>> getUserGalleries(Integer userId) {
+		String albumsUrl = String.format(environment.getProperty("galleries.endpoint.host"), userId);
+        
+    	ResponseEntity<List<GalleryEntity>> albumsResponseEntity = restTemplate.exchange(albumsUrl+userId, HttpMethod.GET, null, new ParameterizedTypeReference<List<GalleryEntity>>() {
+        });
+        return albumsResponseEntity;
+    	
 	}
 	
 

@@ -1,6 +1,7 @@
 package com.app.api.users.controllers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.app.api.users.model.CreateUserRequestModel;
 import com.app.api.users.model.CreateUserResponseModel;
+import com.app.api.users.model.GalleryEntity;
 import com.app.api.users.service.UsersService;
 
 @RestController
@@ -32,6 +35,10 @@ public class UsersController {
 	
 	@Autowired
 	UsersService usersService;
+	
+	Environment environment;
+	
+	RestTemplate restTemplate;
 	
 	Logger log = LoggerFactory.getLogger(UsersController.class);
 
@@ -114,5 +121,26 @@ public class UsersController {
         log.info("ALL users returned successfully!!!!");
         return new ResponseEntity<>(allUsers, new HttpHeaders(), HttpStatus.OK);
     }
+    
+    @GetMapping(value="/{userId}/galleries" ,produces = { MediaType.APPLICATION_JSON_VALUE })
+    public ResponseEntity<Object> getUserGalleries(@PathVariable Integer userId) {
+       
+    	ResponseEntity<List<GalleryEntity>> albumsResponseEntity = usersService.getUserGalleries(userId);
+    	if(albumsResponseEntity == null) {
+   			log.error("Technical error, returned NULL response from Gallery service ");
+       		return new ResponseEntity<>("Technical error, please try again later: ", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR); 
+    		
+    	} else if(albumsResponseEntity.getStatusCode().isSameCodeAs(HttpStatus.OK)) {
+    		log.info("ALL user's galleries returned successfully!!!!");
+            return new ResponseEntity<>(albumsResponseEntity.getBody(), new HttpHeaders(), HttpStatus.OK);
+    	} else if(albumsResponseEntity.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
+    		log.error("Request not found. There are no galleries for the user ID: " + userId);
+    		return new ResponseEntity<>("There are no galleries for the user ID: "+userId, new HttpHeaders(), HttpStatus.NOT_FOUND);    		
+    	} else {
+    		log.error("Technical error, returned NULL response from Gallery service ");
+       		return new ResponseEntity<>("Technical error, please try again later: ", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR); 
+    	}
+        	       	
+     }        
 	
 }
