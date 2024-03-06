@@ -6,3 +6,7 @@ The maven spring boot java projects on jdk17 help beginners to learn different m
 
 ## Steps to run Discovery service
 1. First start Discovery service and then Users and Gallery. 
+
+## Swagger URL
+UserService - http://localhost:8085/swagger-ui/index.html
+GalleryService - http://localhost:8086/swagger-ui/index.html
